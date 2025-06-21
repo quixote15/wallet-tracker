@@ -1,0 +1,18 @@
+# Environment variables
+.env
+
+# IDE specific files
+.idea
+.vscode
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go specific
+*.test
+*.out
+go.work
