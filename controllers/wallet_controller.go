@@ -1,27 +1,22 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
-	"math"
-	"math/big"
 	"net/http"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	"wallet-tracker/domain"
 )
 
-type WalletBalance struct {
-	Address string  `json:"address"`
-	Balance float64 `json:"balance"`
-}
-
 type WalletController struct {
-	client *ethclient.Client
+	getBalanceUseCase *domain.GetBalanceUseCase
 }
 
 func NewWalletController(client *ethclient.Client) *WalletController {
-	return &WalletController{client: client}
+	return &WalletController{
+		getBalanceUseCase: domain.NewGetBalanceUseCase(client),
+	}
 }
 
 func (c *WalletController) Routes() []Route {
@@ -37,34 +32,17 @@ func (c *WalletController) Routes() []Route {
 }
 
 func (c *WalletController) GetBalance(w http.ResponseWriter, r *http.Request) {
-	// Get address from URL parameters using chi's URLParam
-	address := r.URL.Path[len("/wallet/"):len(r.URL.Path)-len("/balance")]
+	// Get address from URL parameters
+	address := r.URL.Path[len("/wallet/") : len(r.URL.Path)-len("/balance")]
 
-	// Convert address string to Ethereum address
-	account := common.HexToAddress(address)
-
-	// Get balance
-	balance, err := c.client.BalanceAt(context.Background(), account, nil)
+	// Get balance using the use case
+	balance, err := c.getBalanceUseCase.Execute(address)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Convert balance from wei to ether
-	fbalance := new(big.Float)
-	fbalance.SetString(balance.String())
-	ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
-
-	// Convert to float64 for JSON marshaling
-	ethFloat, _ := ethValue.Float64()
-
-	// Prepare response
-	response := WalletBalance{
-		Address: address,
-		Balance: ethFloat,
-	}
-
 	// Set content type and encode response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(balance)
 }
