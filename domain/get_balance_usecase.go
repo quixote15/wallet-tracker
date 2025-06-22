@@ -22,7 +22,7 @@ func NewGetBalanceUseCase(client *ethclient.Client) *GetBalanceUseCase {
 	return &GetBalanceUseCase{client: client}
 }
 
-func (uc *GetBalanceUseCase) Execute(address string) (*WalletBalance, error) {
+func (uc *GetBalanceUseCase) Execute(ctx context.Context, address string) (*WalletBalance, error) {
 	// Convert address string to Ethereum address
 	account := common.HexToAddress(address)
 

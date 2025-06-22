@@ -61,16 +61,45 @@ The server will start on port 3000.
 ### Get Wallet Balance
 
 ```bash
-curl http://localhost:3000/wallet/0x742d35Cc6634C0532925a3b844Bc454e4438f44e/balance
+curl http://localhost:8080/wallet/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b/balance
 ```
 
 Response:
 ```json
 {
-    "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    "balance": 1.234567890123456789
+  "address": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b",
+  "balance": 1.23456789
 }
 ```
+
+### Watch Wallet Transactions
+
+Monitor wallet transactions in real-time from the current block forward and save them to a file. The endpoint monitors new blocks for 5 minutes, capturing any transactions involving the specified address.
+
+**Endpoint:** `POST /wallet/{address}/watch`
+
+**Behavior:**
+- Starts monitoring from the current blockchain block
+- Watches for new blocks every 5 seconds
+- Captures transactions where the address is either sender or receiver
+- Monitors for 5 minutes total duration
+- Saves all found transactions to a timestamped JSON file
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/wallet/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b/watch
+```
+
+**Response:**
+```json
+{
+  "message": "Transactions saved successfully",
+  "file_path": "transactions/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b_20240101_120000.json",
+  "address": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b"
+}
+```
+
+**Note:** This endpoint will run for 5 minutes before returning results. During active periods on the blockchain, you may capture multiple transactions.
 
 ### Health Check
 
