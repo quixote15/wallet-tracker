@@ -6,11 +6,15 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+// EthereumClient interface for dependency injection and testing
+type EthereumClient interface {
+	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
+}
+
 type GetBalanceUseCase struct {
-	client *ethclient.Client
+	client EthereumClient
 }
 
 type WalletBalance struct {
@@ -18,7 +22,7 @@ type WalletBalance struct {
 	Balance float64 `json:"balance"`
 }
 
-func NewGetBalanceUseCase(client *ethclient.Client) *GetBalanceUseCase {
+func NewGetBalanceUseCase(client EthereumClient) *GetBalanceUseCase {
 	return &GetBalanceUseCase{client: client}
 }
 
@@ -26,8 +30,8 @@ func (uc *GetBalanceUseCase) Execute(ctx context.Context, address string) (*Wall
 	// Convert address string to Ethereum address
 	account := common.HexToAddress(address)
 
-	// Get balance
-	balance, err := uc.client.BalanceAt(context.Background(), account, nil)
+	// Get balance using the passed context
+	balance, err := uc.client.BalanceAt(ctx, account, nil)
 	if err != nil {
 		return nil, err
 	}
